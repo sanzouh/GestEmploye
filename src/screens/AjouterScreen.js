@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { createEmploye } from "../api/api";
+import Icon from "../components/Icon";
 
 const THEME = {
 	bg: "#EEF4E8",
@@ -32,9 +33,24 @@ function calcObs(sal) {
 }
 
 const OBS_COLORS = {
-	grand: { text: "#2E7D32", bg: "#E8F5E9", border: "#A5D6A7", icon: "📈" },
-	moyen: { text: "#E65100", bg: "#FFF3E0", border: "#FFCC80", icon: "➡️" },
-	mediocre: { text: "#C62828", bg: "#FFEBEE", border: "#EF9A9A", icon: "📉" },
+	grand: {
+		text: "#2E7D32",
+		bg: "#E8F5E9",
+		border: "#A5D6A7",
+		icon: "trending-up",
+	},
+	moyen: {
+		text: "#E65100",
+		bg: "#FFF3E0",
+		border: "#FFCC80",
+		icon: "arrow-forward",
+	},
+	mediocre: {
+		text: "#C62828",
+		bg: "#FFEBEE",
+		border: "#EF9A9A",
+		icon: "trending-down",
+	},
 };
 
 function InputField({ label, value, onChangeText, placeholder, keyboardType }) {
@@ -133,7 +149,17 @@ export default function AjouterScreen({ navigation }) {
 						]}
 					>
 						<View style={styles.obsHeader}>
-							<Text style={styles.obsIcon}>{cl.icon}</Text>
+							<Icon
+								name={cl.icon}
+								size="large"
+								color={
+									obs === "grand"
+										? "success"
+										: obs === "moyen"
+											? "warning"
+											: "danger"
+								}
+							/>
 							<View style={{ flex: 1 }}>
 								<Text style={styles.obsBoxLabel}>Observation calculée</Text>
 								<Text style={[styles.obsBoxValue, { color: cl.text }]}>
@@ -146,13 +172,34 @@ export default function AjouterScreen({ navigation }) {
 								</Text>
 							</View>
 						</View>
-						<Text style={[styles.obsBoxRule, { color: cl.text + "AA" }]}>
-							{obs === "grand"
-								? "✓ Salaire > 5 000 €"
-								: obs === "moyen"
-									? "~ 1 000 ≤ Salaire ≤ 5 000 €"
-									: "✗ Salaire < 1 000 €"}
-						</Text>
+						<View
+							style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+						>
+							<Icon
+								name={
+									obs === "grand"
+										? "checkmark"
+										: obs === "moyen"
+											? "remove"
+											: "close"
+								}
+								size="small"
+								color={
+									obs === "grand"
+										? "success"
+										: obs === "moyen"
+											? "warning"
+											: "danger"
+								}
+							/>
+							<Text style={[styles.obsBoxRule, { color: cl.text + "AA" }]}>
+								{obs === "grand"
+									? "Salaire > 5 000 €"
+									: obs === "moyen"
+										? "1 000 ≤ Salaire ≤ 5 000 €"
+										: "Salaire < 1 000 €"}
+							</Text>
+						</View>
 					</View>
 				)}
 
@@ -207,9 +254,16 @@ export default function AjouterScreen({ navigation }) {
 					onPress={handleSave}
 					disabled={saving}
 				>
-					<Text style={styles.submitBtnText}>
-						{saving ? "Enregistrement..." : "💾  Enregistrer"}
-					</Text>
+					<View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+						{saving ? (
+							<Text style={styles.submitBtnText}>Enregistrement...</Text>
+						) : (
+							<>
+								<Icon name="save" size="medium" color="white" />
+								<Text style={styles.submitBtnText}>Enregistrer</Text>
+							</>
+						)}
+					</View>
 				</TouchableOpacity>
 			</View>
 		</SafeAreaView>
