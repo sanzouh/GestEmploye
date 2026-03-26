@@ -105,7 +105,7 @@ export default function StatsScreen({ navigation }) {
 
 	// Données pour BarChart
 	const barData = {
-		labels: employes.map((e) => e.nom.split(" ")[0].slice(0, 5)),
+		labels: employes.map((e) => e.nom.split(" ")[0].slice(0, 3)),
 		datasets: [{ data: employes.map((e) => Number(e.salaire)) }],
 	};
 
@@ -294,15 +294,17 @@ export default function StatsScreen({ navigation }) {
 							: "Répartition par observation"}
 					</Text>
 					{chartType === "histogram" ? (
-						<BarChart
-							data={barData}
-							width={screenWidth}
-							height={200}
-							chartConfig={chartConfig}
-							style={{ borderRadius: 12 }}
-							showValuesOnTopOfBars
-							fromZero
-						/>
+						<ScrollView horizontal showsHorizontalScrollIndicator={false}>
+							<BarChart
+								data={barData}
+								width={Math.max(screenWidth, employes.length * 60)}
+								height={200}
+								chartConfig={chartConfig}
+								style={{ borderRadius: 12 }}
+								showValuesOnTopOfBars
+								fromZero
+							/>
+						</ScrollView>
 					) : (
 						<PieChart
 							data={pieData}
