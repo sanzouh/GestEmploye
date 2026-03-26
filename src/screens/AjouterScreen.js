@@ -132,7 +132,7 @@ export default function AjouterScreen({ navigation }) {
 						placeholder="ex: Ranaivo Pierre"
 					/>
 					<InputField
-						label="SALAIRE (ARIARY)"
+						label="SALAIRE (EURO)"
 						value={salaire}
 						onChangeText={setSalaire}
 						placeholder="ex: 3500"

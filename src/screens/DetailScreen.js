@@ -23,6 +23,9 @@ const THEME = {
 	textLight: "#888888",
 	border: "#E2ECD8",
 	inputBg: "#F7FAF4",
+	danger: "#C62828",
+	dangerBg: "#FFEBEE",
+	dangerBorder: "#EF9A9A",
 };
 
 function calcObs(sal) {
@@ -67,8 +70,7 @@ export default function DetailScreen({ route, navigation }) {
 	const obs = emp.obs && OBS_COLORS[emp.obs] ? emp.obs : calcObs(emp.salaire);
 	const cl = OBS_COLORS[obs];
 
-	// ── Modifier ────────────────────────────────────────
-	async function handleUpdate() {
+	const handleUpdate = async () => {
 		if (!nom.trim() || !salaire.trim()) {
 			Alert.alert("Erreur", "Remplissez tous les champs");
 			return;
@@ -90,10 +92,9 @@ export default function DetailScreen({ route, navigation }) {
 		} finally {
 			setSaving(false);
 		}
-	}
+	};
 
-	// ── Supprimer ───────────────────────────────────────
-	function handleDelete() {
+	const handleDelete = () => {
 		Alert.alert("Confirmer suppression", `Supprimer ${emp.nom} ?`, [
 			{ text: "Annuler", style: "cancel" },
 			{
@@ -109,25 +110,27 @@ export default function DetailScreen({ route, navigation }) {
 				},
 			},
 		]);
-	}
+	};
 
 	return (
-		<SafeAreaView style={styles.safe}>
+		<SafeAreaView
+			style={[styles.container, { backgroundColor: cl.heroTop }]}
+			edges={["bottom"]}
+		>
 			<StatusBar barStyle="light-content" backgroundColor={cl.heroTop} />
 
-			{/* Hero Section */}
-			<View style={[styles.hero, { backgroundColor: cl.heroTop }]}>
-				{/* Header buttons */}
-				<View style={styles.heroHeader}>
-					<TouchableOpacity
-						style={styles.heroBtn}
-						onPress={() => navigation?.goBack()}
+			{/* Header avec avatar et actions */}
+			<View style={[styles.header, { backgroundColor: cl.heroTop }]}>
+				<View style={styles.headerTop}>
+					{/* <TouchableOpacity
+						style={styles.backBtn}
+						onPress={() => navigation.goBack()}
 					>
 						<Icon name="chevron-back" size="large" color="white" />
-					</TouchableOpacity>
-					<View style={styles.heroActions}>
+					</TouchableOpacity> */}
+					<View style={styles.headerActions}>
 						<TouchableOpacity
-							style={[styles.heroBtn, editing && styles.heroBtnActive]}
+							style={[styles.actionBtn, editing && styles.actionBtnActive]}
 							onPress={() => setEditing(!editing)}
 						>
 							<Icon
@@ -136,33 +139,29 @@ export default function DetailScreen({ route, navigation }) {
 								color="white"
 							/>
 						</TouchableOpacity>
-						<TouchableOpacity style={styles.heroBtn} onPress={handleDelete}>
+						<TouchableOpacity style={styles.actionBtn} onPress={handleDelete}>
 							<Icon name="trash" size="large" color="white" />
 						</TouchableOpacity>
 					</View>
 				</View>
 
-				{/* Avatar large */}
-				<View style={styles.heroAvatarWrap}>
-					<View style={[styles.heroAvatar, { backgroundColor: cl.heroBtm }]}>
-						<Text style={styles.heroAvatarText}>
+				<View style={styles.avatarSection}>
+					<View style={[styles.avatar, { backgroundColor: cl.heroBtm }]}>
+						<Text style={styles.avatarText}>
 							{emp.nom.charAt(0).toUpperCase()}
 						</Text>
 					</View>
+					<Text style={styles.name}>{emp.nom}</Text>
+					<Text style={styles.num}>{emp.numemp || emp.numEmp}</Text>
 				</View>
 			</View>
 
-			{/* Profile Card */}
+			{/* Contenu scrollable */}
 			<ScrollView
-				style={styles.scroll}
+				style={[styles.scroll, { backgroundColor: cl.heroTop, marginTop: -12 }]}
 				showsVerticalScrollIndicator={false}
-				keyboardShouldPersistTaps="handled"
 			>
-				<View style={styles.profileCard}>
-					{/* Nom & numéro */}
-					<Text style={styles.profileName}>{emp.nom}</Text>
-					<Text style={styles.profileNum}>{emp.numemp || emp.numEmp}</Text>
-
+				<View style={styles.content}>
 					{/* Badge observation */}
 					<View
 						style={[
@@ -170,85 +169,79 @@ export default function DetailScreen({ route, navigation }) {
 							{ backgroundColor: cl.bg, borderColor: cl.border },
 						]}
 					>
-						<Text style={[styles.obsBadgeText, { color: cl.text }]}>
+						<Text style={[styles.obsText, { color: cl.text }]}>
 							{obs.toUpperCase()}
 						</Text>
 					</View>
 
-					{/* Salaire card */}
+					{/* Section salaire */}
 					<View
 						style={[
-							styles.salaireCard,
+							styles.salarySection,
 							{ backgroundColor: cl.bg, borderColor: cl.border },
 						]}
 					>
-						<View>
-							<Text style={styles.salaireLabel}>Salaire mensuel</Text>
-							<Text style={[styles.salaireValue, { color: cl.text }]}>
-								{parseFloat(emp.salaire).toLocaleString()}
-								<Text style={styles.salaireUnit}> €</Text>
+						<Text style={styles.salaryLabel}>Salaire mensuel</Text>
+						<View style={styles.salaryRow}>
+							<Text style={[styles.salaryValue, { color: cl.text }]}>
+								{parseFloat(emp.salaire).toLocaleString()} €
 							</Text>
+							<Icon name="cash-outline" size="xl" color={cl.text} />
 						</View>
-						<Icon name="cash-outline" size="xl" color={cl.text} />
 					</View>
 
 					{/* Formulaire de modification */}
 					{editing && (
-						<View style={styles.editCard}>
-							<View
-								style={{
-									flexDirection: "row",
-									alignItems: "center",
-									gap: 6,
-									marginBottom: 14,
-								}}
-							>
+						<View style={styles.editSection}>
+							<View style={styles.editHeader}>
 								<Icon name="pencil" size="large" color={THEME.primary} />
-								<Text style={styles.editCardTitle}>Modifier l'employé</Text>
+								<Text style={styles.editTitle}>Modifier l'employé</Text>
 							</View>
 
-							<Text style={styles.fieldLabel}>NOM COMPLET</Text>
-							<TextInput
-								style={styles.input}
-								value={nom}
-								onChangeText={setNom}
-								placeholderTextColor={THEME.textLight}
-							/>
-							<Text style={styles.fieldLabel}>SALAIRE (Ar)</Text>
-							<TextInput
-								style={styles.input}
-								value={salaire}
-								onChangeText={setSalaire}
-								keyboardType="numeric"
-								placeholderTextColor={THEME.textLight}
-							/>
+							<View style={styles.inputGroup}>
+								<Text style={styles.label}>NOM COMPLET</Text>
+								<TextInput
+									style={styles.input}
+									value={nom}
+									onChangeText={setNom}
+									placeholder="Nom complet"
+									placeholderTextColor={THEME.textLight}
+								/>
+							</View>
+
+							<View style={styles.inputGroup}>
+								<Text style={styles.label}>SALAIRE (€)</Text>
+								<TextInput
+									style={styles.input}
+									value={salaire}
+									onChangeText={setSalaire}
+									keyboardType="numeric"
+									placeholder="Salaire"
+									placeholderTextColor={THEME.textLight}
+								/>
+							</View>
+
 							<TouchableOpacity
 								style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
 								onPress={handleUpdate}
 								disabled={saving}
 							>
-								<View
-									style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-								>
-									{saving ? (
-										<Text style={styles.saveBtnText}>Sauvegarde...</Text>
-									) : (
-										<>
-											<Icon name="save" size="medium" color="white" />
-											<Text style={styles.saveBtnText}>
-												Sauvegarder les modifications
-											</Text>
-										</>
-									)}
-								</View>
+								{saving ? (
+									<Text style={styles.saveBtnText}>Sauvegarde...</Text>
+								) : (
+									<View style={styles.saveBtnContent}>
+										<Icon name="save" size="medium" color="white" />
+										<Text style={styles.saveBtnText}>Sauvegarder</Text>
+									</View>
+								)}
 							</TouchableOpacity>
 						</View>
 					)}
 
-					{/* Zone suppression */}
-					<View style={styles.dangerCard}>
+					{/* Zone danger */}
+					<View style={styles.dangerSection}>
 						<View style={styles.dangerHeader}>
-							<Icon name="warning" size="large" color="danger" />
+							<Icon name="warning" size="large" color={THEME.danger} />
 							<View>
 								<Text style={styles.dangerTitle}>Zone dangereuse</Text>
 								<Text style={styles.dangerSub}>
@@ -257,10 +250,8 @@ export default function DetailScreen({ route, navigation }) {
 							</View>
 						</View>
 						<TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
-							<View
-								style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-							>
-							<Icon name="trash" size="medium" color="danger" />
+							<View style={styles.deleteBtnContent}>
+								<Icon name="trash" size="medium" color={THEME.danger} />
 								<Text style={styles.deleteBtnText}>Supprimer cet employé</Text>
 							</View>
 						</TouchableOpacity>
@@ -272,167 +263,240 @@ export default function DetailScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-	safe: { flex: 1, backgroundColor: THEME.bg },
-
-	hero: { height: 240, justifyContent: "space-between", paddingBottom: 0 },
-	heroHeader: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		paddingHorizontal: 20,
-		paddingTop: 16,
+	container: {
+		flex: 1,
+		backgroundColor: THEME.bg,
 	},
-	heroActions: { flexDirection: "row", gap: 10 },
-	heroBtn: {
-		width: 42,
-		height: 42,
-		borderRadius: 14,
-		backgroundColor: "rgba(255,255,255,0.18)",
+
+	// Header
+	header: {
+		paddingTop: 0,
+		paddingBottom: 20,
+	},
+	headerTop: {
+		flexDirection: "row",
+		justifyContent: "flex-end",
+		alignItems: "center",
+		paddingHorizontal: 20,
+		paddingTop: 20,
+		marginBottom: 20,
+	},
+	backBtn: {
+		width: 44,
+		height: 44,
+		borderRadius: 22,
+		backgroundColor: "rgba(255,255,255,0.2)",
 		justifyContent: "center",
 		alignItems: "center",
 	},
-	heroBtnActive: { backgroundColor: "rgba(255,255,255,0.35)" },
-	heroBtnText: { color: "#fff", fontSize: 20 },
-	heroAvatarWrap: { alignItems: "center", paddingBottom: 0, marginTop: 14 },
-	heroAvatar: {
-		width: 100,
-		height: 100,
-		borderRadius: 50,
+	headerActions: {
+		flexDirection: "row",
+		gap: 12,
+	},
+	actionBtn: {
+		width: 44,
+		height: 44,
+		borderRadius: 22,
+		backgroundColor: "rgba(255,255,255,0.2)",
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	actionBtnActive: {
+		backgroundColor: "rgba(255,255,255,0.4)",
+	},
+
+	// Avatar section
+	avatarSection: {
+		alignItems: "center",
+	},
+	avatar: {
+		width: 90,
+		height: 90,
+		borderRadius: 45,
 		justifyContent: "center",
 		alignItems: "center",
 		borderWidth: 4,
 		borderColor: "rgba(255,255,255,0.3)",
+		marginBottom: 12,
 	},
-	heroAvatarText: { fontSize: 38, fontWeight: "900", color: "#fff" },
+	avatarText: {
+		fontSize: 36,
+		fontWeight: "900",
+		color: "#fff",
+	},
+	name: {
+		fontSize: 22,
+		fontWeight: "800",
+		color: "#fff",
+		marginBottom: 4,
+		textAlign: "center",
+	},
+	num: {
+		fontSize: 16,
+		color: "rgba(255,255,255,0.8)",
+		textAlign: "center",
+	},
 
-	scroll: { flex: 1 },
-	profileCard: {
+	// Scroll content
+	scroll: {
+		flex: 1,
+	},
+	content: {
 		backgroundColor: THEME.card,
-		borderTopLeftRadius: 28,
-		borderTopRightRadius: 28,
-		marginTop: -24,
-		padding: 24,
-		paddingBottom: 40,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: -2 },
-		shadowOpacity: 0.08,
-		shadowRadius: 12,
-		elevation: 6,
+		borderTopLeftRadius: 32,
+		borderTopRightRadius: 32,
+		marginTop: 0,
+		padding: 16,
+		paddingBottom: 32,
 		minHeight: "100%",
 	},
-	profileName: {
-		fontSize: 26,
-		fontWeight: "800",
-		color: THEME.textDark,
-		letterSpacing: -0.3,
-		textAlign: "center",
-		marginBottom: 4,
-	},
-	profileNum: {
-		fontSize: 14,
-		color: THEME.textLight,
-		textAlign: "center",
-		marginBottom: 14,
-		fontWeight: "500",
-	},
+
+	// Observation badge
 	obsBadge: {
 		alignSelf: "center",
-		borderRadius: 20,
+		borderRadius: 24,
 		paddingHorizontal: 20,
 		paddingVertical: 6,
-		borderWidth: 1.5,
-		marginBottom: 20,
+		borderWidth: 2,
+		marginBottom: 16,
 	},
-	obsBadgeText: { fontWeight: "800", fontSize: 13, letterSpacing: 0.5 },
+	obsText: {
+		fontSize: 14,
+		fontWeight: "800",
+		letterSpacing: 1,
+	},
 
-	salaireCard: {
-		borderRadius: 18,
-		padding: 18,
+	// Salary section
+	salarySection: {
+		borderRadius: 20,
+		padding: 16,
+		borderWidth: 2,
+		marginBottom: 16,
+	},
+	salaryLabel: {
+		fontSize: 14,
+		color: THEME.textLight,
+		marginBottom: 8,
+		fontWeight: "600",
+	},
+	salaryRow: {
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
-		borderWidth: 1.5,
-		marginBottom: 16,
 	},
-	salaireLabel: {
-		color: THEME.textLight,
-		fontSize: 12,
-		marginBottom: 5,
-		fontWeight: "500",
+	salaryValue: {
+		fontSize: 28,
+		fontWeight: "900",
 	},
-	salaireValue: { fontSize: 28, fontWeight: "900" },
-	salaireUnit: { fontSize: 14, fontWeight: "400", color: THEME.textLight },
 
-	editCard: {
+	// Edit section
+	editSection: {
 		backgroundColor: THEME.bg,
-		borderRadius: 18,
-		padding: 18,
-		marginBottom: 16,
-		borderWidth: 1.5,
+		borderRadius: 20,
+		padding: 12,
+		borderWidth: 2,
 		borderColor: THEME.border,
+		marginBottom: 16,
 	},
-	editCardTitle: {
-		fontSize: 15,
+	editHeader: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 12,
+		marginBottom: 16,
+	},
+	editTitle: {
+		fontSize: 14,
 		fontWeight: "700",
 		color: THEME.textDark,
-		marginBottom: 16,
 	},
-	fieldLabel: {
-		fontSize: 11,
+	inputGroup: {
+		marginBottom: 12,
+	},
+	label: {
+		fontSize: 12,
 		fontWeight: "700",
 		color: THEME.textMid,
-		marginBottom: 7,
+		marginBottom: 8,
 		textTransform: "uppercase",
 		letterSpacing: 0.8,
 	},
 	input: {
 		backgroundColor: THEME.card,
-		borderRadius: 13,
-		paddingHorizontal: 14,
-		paddingVertical: 13,
-		fontSize: 14,
+		borderRadius: 12,
+		paddingHorizontal: 16,
+		paddingVertical: 12,
+		fontSize: 16,
 		color: THEME.textDark,
-		borderWidth: 1.5,
+		borderWidth: 2,
 		borderColor: THEME.border,
-		marginBottom: 14,
 	},
 	saveBtn: {
 		backgroundColor: THEME.primary,
-		borderRadius: 14,
-		padding: 15,
+		borderRadius: 16,
+		padding: 12,
 		alignItems: "center",
+		marginTop: 8,
 		shadowColor: THEME.primary,
 		shadowOffset: { width: 0, height: 4 },
 		shadowOpacity: 0.3,
 		shadowRadius: 8,
 		elevation: 4,
 	},
-	saveBtnDisabled: { opacity: 0.6 },
-	saveBtnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+	saveBtnDisabled: {
+		opacity: 0.6,
+	},
+	saveBtnContent: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 8,
+	},
+	saveBtnText: {
+		color: "#fff",
+		fontWeight: "700",
+		fontSize: 16,
+	},
 
-	dangerCard: {
-		backgroundColor: "#FFF5F5",
-		borderRadius: 18,
-		padding: 18,
-		borderWidth: 1.5,
-		borderColor: "#FFCDD2",
-		marginBottom: 10,
+	// Danger section
+	dangerSection: {
+		backgroundColor: THEME.dangerBg,
+		borderRadius: 20,
+		padding: 12,
+		borderWidth: 2,
+		borderColor: THEME.dangerBorder,
 	},
 	dangerHeader: {
 		flexDirection: "row",
 		alignItems: "center",
-		gap: 10,
-		marginBottom: 14,
+		gap: 12,
+		marginBottom: 16,
 	},
-	dangerIcon: { fontSize: 24 },
-	dangerTitle: { color: "#C62828", fontSize: 14, fontWeight: "800" },
-	dangerSub: { color: "#EF9A9A", fontSize: 12, marginTop: 1 },
+	dangerTitle: {
+		fontSize: 14,
+		fontWeight: "800",
+		color: THEME.danger,
+	},
+	dangerSub: {
+		fontSize: 12,
+		color: THEME.danger,
+		opacity: 0.8,
+		marginTop: 2,
+	},
 	deleteBtn: {
-		backgroundColor: "#FFEBEE",
-		borderWidth: 1.5,
-		borderColor: "#EF9A9A",
-		borderRadius: 13,
-		padding: 14,
+		backgroundColor: THEME.dangerBg,
+		borderWidth: 2,
+		borderColor: THEME.dangerBorder,
+		borderRadius: 16,
+		padding: 12,
 		alignItems: "center",
 	},
-	deleteBtnText: { color: "#C62828", fontWeight: "700", fontSize: 14 },
+	deleteBtnContent: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 8,
+	},
+	deleteBtnText: {
+		color: THEME.danger,
+		fontWeight: "700",
+		fontSize: 14,
+	},
 });
